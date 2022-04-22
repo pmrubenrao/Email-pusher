@@ -1,0 +1,11 @@
+{
+  "name": "email-sender",
+  "version": "1.0.0",
+  "description": "Application is designed to send the bulk mails to registered user inside the salesforce, using the AWS services like Lambda, S3, SES, KMS, DynamoDB, Clouwatch etc.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ruben Rao",
+  "license": "ISC"
+}

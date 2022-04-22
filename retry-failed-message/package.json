@@ -1,0 +1,11 @@
+{
+  "name": "retry-failed-message",
+  "version": "1.0.0",
+  "description": "Function to re-push the failed messages back to the sqs queue which it gets from the DynamoDB",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ruben Rao",
+  "license": "ISC"
+}
