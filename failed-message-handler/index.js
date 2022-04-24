@@ -40,20 +40,33 @@ exports.handler = async function (event, context) {
   messageLogger =
     new Date().toLocaleString() + ',' + 'Success' + ',' + SESDestinationAddress;
 
-  function uploadFileOnS3(fileData, fileName) {
+  function uploadFileOnS3(data, fileName) {
     return new Promise((resolve, reject) => {
       (async () => {
-        const params = {
-          Bucket: 'message-tracker-bucket',
-          Key: fileName,
-          Body: fileData,
-        };
-        console.log(`file data :${fileData}`);
+        console.log(`file data :${data}`);
         console.log(`file name :${fileName}`);
         try {
-          const response = await s3.upload(params).promise();
-          console.log('Response: ', response);
-          resolve(response);
+          const paramsReadingFile = {
+            Bucket: 'message-tracker-bucket',
+            Key: fileName,
+          };
+          const readResponseS3 = await s3
+            .getObject(paramsReadingFile)
+            .promise();
+          let fileContent = readResponseS3.Body.toString('utf-8');
+
+          updatedData = fileContent + '\n' + data;
+
+          const paramsUpdatingFile = {
+            Bucket: 'message-tracker-bucket',
+            Key: fileName,
+            Body: updatedData,
+          };
+          const uploadResponseS3 = await s3
+            .upload(paramsUpdatingFile)
+            .promise();
+          console.log('Upload Response ', updatedData);
+          resolve(uploadResponseS3);
         } catch (err) {
           reject(err);
         }
@@ -70,6 +83,6 @@ exports.handler = async function (event, context) {
      * we create a file for each successfull devlivery of the mails to the end-user
      */
 
-    await uploadFileOnS3(messageLogger, 'message-tracker-' + uuidv4() + '.csv');
+    await uploadFileOnS3(messageLogger, 'message-tracker.csv');
   }
 };
