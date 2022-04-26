@@ -14,6 +14,7 @@ const { v4: uuidv4 } = require('uuid');
 exports.handler = async function (event, context) {
   const SnsPublishTime = event.Records[0].Sns.Timestamp;
   //   const SnsTopicArn = event.Records[0].Sns.TopicArn;
+
   let SESMessage = event.Records[0].Sns.Message;
   let messageLogger = '';
 
@@ -24,21 +25,53 @@ exports.handler = async function (event, context) {
   const SESDestinationAddress = SESMessage.mail.destination.toString();
   //   const LambdaReceiveTime = new Date().toString();
 
-  console.log(event.Records[0].Sns);
+  console.log('EVENT DETAIL FROM SNS ::: ', event.Records[0].Sns);
 
-  const paramsInsert = {
-    TableName: 'FailedEmailNotifications',
-    Item: {
-      FailedEmailMessageId: SESMessageId,
-      SnsPublishTime: SnsPublishTime,
-      SESDestinationAddress: SESDestinationAddress,
-      retryCount: 0,
-      SESMessageType: SESMessageType,
-    },
-  };
+  /**
+   * Extracting the Header information from SES
+   */
+  let transformedHeader = {};
+
+  SESMessage.mail.headers.forEach((data) => {
+    console.log('OUR DATA OBJECT FROM HEADER :: ', Object.values(data));
+
+    if (
+      Object.values(data).indexOf('Echo_idea__c') !== -1 ||
+      Object.values(data).indexOf('Echo_feedbackpageurl__c') !== -1 ||
+      Object.values(data).indexOf('Echo_actedby__c') !== -1 ||
+      Object.values(data).indexOf('Echo_potificationactivitytype__c') !== -1 ||
+      Object.values(data).indexOf('Echo_preactivityvalue__c') !== -1 ||
+      Object.values(data).indexOf('Echo_postactivityvalue__c') !== -1
+    ) {
+      let headerKey = Object.values(data)[0];
+      let headerValue = Object.values(data)[1];
+
+      this.transformedHeader = {
+        ...this.transformedHeader,
+        [`${headerKey}`]: `${headerValue}`,
+      };
+      console.log('object INFORMATION', this.transformedHeader);
+    }
+  });
 
   messageLogger =
-    new Date().toLocaleString() + ',' + 'Success' + ',' + SESDestinationAddress;
+    new Date().toLocaleString() +
+    ',' +
+    'Success' +
+    ',' +
+    SESDestinationAddress +
+    ',' +
+    this.transformedHeader.Echo_idea__c +
+    ',' +
+    this.transformedHeader.Echo_feedbackpageurl__c +
+    ',' +
+    this.transformedHeader.Echo_actedby__c +
+    ',' +
+    this.transformedHeader.Echo_notificationactivitytype__c +
+    ',' +
+    this.transformedHeader.Echo_preactivityvalue__c +
+    ',' +
+    this.transformedHeader.Echo_postactivityvalue__c;
 
   function uploadFileOnS3(data, fileName) {
     return new Promise((resolve, reject) => {
@@ -55,7 +88,7 @@ exports.handler = async function (event, context) {
             .promise();
           let fileContent = readResponseS3.Body.toString('utf-8');
 
-          updatedData = fileContent + '\n' + data;
+          let updatedData = fileContent + '\n' + data;
 
           const paramsUpdatingFile = {
             Bucket: 'message-tracker-bucket',

@@ -77,6 +77,14 @@ class messagePoller {
         to: emailID,
         text: 'This is some text',
         html: '<b>This is some HTML</b>',
+        headers: {
+          Echo_Idea__c: 'a0S02000000kSaDEAU',
+          Echo_FeedbackPageURL__c: 'www.google.com',
+          Echo_ActedBy__c: 'null',
+          Echo_NotificationActivityType__c: 'Idea External Status Change',
+          Echo_PreActivityValue__c: 'InProgress',
+          Echo_PostActivityValue__c: 'Completed',
+        },
       };
 
       function callback(error, info) {
